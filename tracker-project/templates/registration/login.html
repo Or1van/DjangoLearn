@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Log in" %}{% endblock %}
+{% block guest %}
+<div class="card fade-in">
+  <h1>{% trans "Welcome back" %}</h1>
+  <p class="muted">{% trans "Log in to see your finances." %}</p>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>
+    {% endfor %}
+    {{ form.non_field_errors }}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" class="btn block">{% trans "Log in" %}</button>
+  </form>
+  <p class="center small">{% trans "No account?" %} <a href="{% url 'signup' %}">{% trans "Sign up" %}</a></p>
+</div>
+{% endblock %}

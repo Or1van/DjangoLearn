@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="card form-card fade-in">
+  <h1>{{ title }}</h1>
+  <form method="post" id="tx-form" style="margin-top:1rem">
+    {% csrf_token %}
+    <div class="field">
+      <div class="seg">
+        {% for radio in form.kind %}<label>{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>{% endfor %}
+      </div>
+      {{ form.kind.errors }}
+    </div>
+    <div class="field"><label for="{{ form.amount.id_for_label }}">{{ form.amount.label }}</label>
+      <div class="amount-wrap">{{ form.amount }}</div>{{ form.amount.errors }}</div>
+    <div class="field"><label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>{{ form.title }}{{ form.title.errors }}</div>
+    <div class="field"><label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>{{ form.category }}{{ form.category.errors }}</div>
+    <div class="field"><label for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>{{ form.date }}{{ form.date.errors }}</div>
+    <div class="field"><label for="{{ form.note.id_for_label }}">{{ form.note.label }}</label>{{ form.note }}{{ form.note.errors }}</div>
+    {{ form.non_field_errors }}
+    <div class="form-actions">
+      <button type="submit" class="btn">{% trans "Save" %}</button>
+      <a href="{% url 'expenses:list' %}" class="btn secondary">{% trans "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
