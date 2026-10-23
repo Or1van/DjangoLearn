@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Confirm delete" %}{% endblock %}
+{% block content %}
+<div class="card form-card center fade-in">
+  <div style="font-size:3rem">🗑️</div>
+  <h1>{% blocktrans with name=object %}Delete “{{ name }}”?{% endblocktrans %}</h1>
+  <p class="muted">{% trans "This cannot be undone." %}</p>
+  <form method="post" class="form-actions" style="justify-content:center">
+    {% csrf_token %}
+    <button type="submit" class="btn danger">{% trans "Yes, delete" %}</button>
+    <a href="{% url cancel_url %}" class="btn secondary">{% trans "Cancel" %}</a>
+  </form>
+</div>
+{% endblock %}

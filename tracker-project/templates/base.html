@@ -1,0 +1,78 @@
+{% load static i18n %}{% get_current_language as LANGUAGE_CODE %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% trans "Expense Tracker" %}{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
+  <script>
+    try {
+      var t = localStorage.getItem("theme") ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="{% static 'expenses/style.css' %}">
+</head>
+<body class="{% if user.is_authenticated %}app{% else %}guest{% endif %}">
+{% if user.is_authenticated %}
+  {% with url_name=request.resolver_match.url_name %}
+  <aside class="sidebar">
+    <a class="brand" href="{% url 'expenses:dashboard' %}"><span class="logo">💰</span> {% trans "Expense Tracker" %}</a>
+    <nav class="nav">
+      <a href="{% url 'expenses:dashboard' %}" class="{% if url_name == 'dashboard' %}active{% endif %}"><span class="ico">🏠</span>{% trans "Dashboard" %}</a>
+      <a href="{% url 'expenses:list' %}" class="{% if url_name == 'list' or url_name == 'create' or url_name == 'update' or url_name == 'delete' %}active{% endif %}"><span class="ico">🧾</span>{% trans "Transactions" %}</a>
+      <a href="{% url 'expenses:category_list' %}" class="{% if 'category' in url_name %}active{% endif %}"><span class="ico">🏷️</span>{% trans "Categories" %}</a>
+      <a href="{% url 'expenses:stats' %}" class="{% if url_name == 'stats' %}active{% endif %}"><span class="ico">📈</span>{% trans "Statistics" %}</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="tools">
+        <form action="{% url 'set_language' %}" method="post" style="flex:1">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <select name="language" aria-label="{% trans 'Language' %}" onchange="this.form.submit()">
+            {% get_available_languages as LANGUAGES %}
+            {% for code, name in LANGUAGES %}
+              <option value="{{ code }}" {% if code == LANGUAGE_CODE %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+        </form>
+        <button type="button" class="icon-btn" id="theme-toggle" title="{% trans 'Toggle theme' %}">🌙</button>
+        <form method="post" action="{% url 'logout' %}" class="logout">
+          {% csrf_token %}<button type="submit" class="icon-btn" title="{% trans 'Log out' %}">⎋</button>
+        </form>
+      </div>
+      <div class="userbox"><span class="avatar">{{ user.username|slice:":1" }}</span><span class="name">{{ user.username }}</span></div>
+    </div>
+  </aside>
+  {% endwith %}
+  <main class="content">{% block content %}{% endblock %}</main>
+{% else %}
+  <div class="guest-box">
+    <div class="brand"><span class="logo">💰</span> {% trans "Expense Tracker" %}</div>
+    {% block guest %}{% endblock %}
+    <div class="guest-tools">
+      <form action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <select name="language" aria-label="{% trans 'Language' %}" onchange="this.form.submit()">
+          {% get_available_languages as LANGUAGES %}
+          {% for code, name in LANGUAGES %}
+            <option value="{{ code }}" {% if code == LANGUAGE_CODE %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      <button type="button" class="icon-btn" id="theme-toggle" title="{% trans 'Toggle theme' %}">🌙</button>
+    </div>
+  </div>
+{% endif %}
+
+{% if messages %}
+<div class="toasts" role="status">
+  {% for m in messages %}<div class="toast {{ m.tags }}">{{ m }}</div>{% endfor %}
+</div>
+{% endif %}
+<script src="{% static 'expenses/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

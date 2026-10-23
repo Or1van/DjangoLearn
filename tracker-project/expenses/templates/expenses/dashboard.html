@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Dashboard" %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{% trans "Dashboard" %}</h1>
+    <p class="muted">{% blocktrans with m=month_label|date:"F Y" %}Overview for {{ m }}{% endblocktrans %}</p>
+  </div>
+  <div style="display:flex;gap:.5rem">
+    <a class="btn income" href="{% url 'expenses:create' %}?kind=income">+ {% trans "Income" %}</a>
+    <a class="btn" href="{% url 'expenses:create' %}?kind=expense">+ {% trans "Expense" %}</a>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="card kpi hero fade-in">
+    <span class="label">{% trans "Total balance" %}</span>
+    <div class="value" data-count="{{ net_worth|floatformat:2 }}">${{ net_worth|floatformat:"2g" }}</div>
+    <span class="small" style="opacity:.8">{% trans "All time" %}</span>
+    <span class="chip-ico">💎</span>
+  </div>
+  <div class="card kpi income fade-in">
+    <span class="label">{% trans "Income" %}</span>
+    <div class="value" data-count="{{ income|floatformat:2 }}">${{ income|floatformat:"2g" }}</div>
+    <span class="small muted">{% trans "This month" %}</span>
+    <span class="chip-ico">📥</span>
+  </div>
+  <div class="card kpi expense fade-in">
+    <span class="label">{% trans "Expenses" %}</span>
+    <div class="value" data-count="{{ expense|floatformat:2 }}">${{ expense|floatformat:"2g" }}</div>
+    {% if delta is not None %}
+      <span class="delta {% if delta > 0 %}up{% else %}down{% endif %}">{% if delta > 0 %}▲{% else %}▼{% endif %} {{ delta_abs }}% {% trans "vs last month" %}</span>
+    {% else %}<span class="small muted">{% trans "This month" %}</span>{% endif %}
+    <span class="chip-ico">📤</span>
+  </div>
+  <div class="card kpi balance fade-in">
+    <span class="label">{% trans "Month balance" %}</span>
+    <div class="value {% if balance >= 0 %}pos{% else %}neg{% endif %}" data-count="{{ balance|floatformat:2 }}">${{ balance|floatformat:"2g" }}</div>
+    <span class="small muted">{% if top %}{% blocktrans with name=top.name %}Top spend: {{ name }}{% endblocktrans %}{% else %}{% trans "This month" %}{% endif %}</span>
+    <span class="chip-ico">⚖️</span>
+  </div>
+</div>
+
+{% if not has_data %}
+<div class="card empty fade-in">
+  <span class="big">🚀</span>
+  <h2>{% trans "Let's get started" %}</h2>
+  <p>{% trans "Add your first transaction to see charts and insights here." %}</p>
+  <a class="btn" href="{% url 'expenses:create' %}">+ {% trans "Add transaction" %}</a>
+</div>
+{% else %}
+<div class="grid-main">
+  <div class="card fade-in">
+    <h2>{% trans "Last 6 months" %}</h2>
+    <div class="chart-box"><canvas id="trend"></canvas></div>
+  </div>
+  <div class="card fade-in">
+    <h2>{% trans "Spending by category" %}</h2>
+    {% if dash_data.by_category %}
+      <div class="chart-box" style="height:190px"><canvas id="cats"></canvas></div>
+      <div class="legend" id="legend"></div>
+    {% else %}<div class="empty">{% trans "No expenses this month." %}</div>{% endif %}
+  </div>
+</div>
+
+<div class="card fade-in">
+  <div class="card-head"><h2>{% trans "Recent transactions" %}</h2><a href="{% url 'expenses:list' %}">{% trans "View all" %} →</a></div>
+  {% for t in recent %}
+  <div class="tx-item">
+    <div class="tx-ico" style="--c:{{ t.category.color|default:'#94a3b8' }}">{{ t.category.icon|default:"💸" }}</div>
+    <div class="tx-body"><strong>{{ t.title }}</strong><span class="small muted">{{ t.date|date:"j M" }} · {{ t.category.name|default:"—" }}</span></div>
+    <div class="num {{ t.kind }}" style="font-size:1rem">{% if t.kind == "income" %}+{% else %}-{% endif %}${{ t.amount }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{{ dash_data|json_script:"dash-data" }}
+{% endblock %}
+{% block scripts %}
+{% if has_data %}
+<script>window.I18N = {income: "{% trans 'Income' %}", expense: "{% trans 'Expenses' %}"};</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'expenses/charts.js' %}"></script>
+<script src="{% static 'expenses/dashboard.js' %}"></script>
+{% endif %}
+{% endblock %}

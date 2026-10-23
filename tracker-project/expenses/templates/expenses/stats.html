@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Statistics" %}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{% trans "Statistics" %}</h1><p class="muted">{% trans "All-time breakdown of your money." %}</p></div></div>
+<div class="grid2">
+  <div class="card fade-in"><h2>{% trans "Expenses by category" %}</h2><div class="chart-box"><canvas id="by-category"></canvas></div></div>
+  <div class="card fade-in"><h2>{% trans "Income vs expenses by month" %}</h2><div class="chart-box"><canvas id="by-month"></canvas></div></div>
+</div>
+<div id="stats-empty" class="card empty" hidden><span class="big">📊</span>{% trans "No data yet — add some transactions." %}</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.STATS_URL = "{% url 'expenses:stats_api' %}";
+  window.I18N = {income: "{% trans 'Income' %}", expense: "{% trans 'Expenses' %}"};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'expenses/charts.js' %}"></script>
+<script src="{% static 'expenses/stats.js' %}"></script>
+{% endblock %}
